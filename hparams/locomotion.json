@@ -37,8 +37,8 @@
         }
     },
     "Device": {
-        "glow": ["cuda:3"],
-        "data": "cuda:3"
+        "glow": ["cuda:0"],
+        "data": "cuda:0"
     },
     "Train": {
         "batch_size": 100,

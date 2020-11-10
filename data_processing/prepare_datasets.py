@@ -1,16 +1,15 @@
-import numpy as np
-
-import glob
 import os
 import sys
+
+import numpy as np
+import argparse
 from shutil import copyfile
+import scipy.io.wavfile as wav
+
+from pymo.parsers import BVHParser
+from pymo.writers import BVHWriter
 from motion_features import extract_joint_angles, extract_hand_pos, extract_style_features
 from audio_features import extract_melspec
-import scipy.io.wavfile as wav
-from pymo.parsers import BVHParser
-from pymo.data import Joint, MocapData
-from pymo.preprocessing import *
-from pymo.writers import *
 
 def cut_audio(filename, timespan, destpath, starttime=0.0, endtime=-1.0):
     print(f'Cutting AUDIO {filename} into intervals of {timespan}')
@@ -140,27 +139,25 @@ if __name__ == "__main__":
     Converts bvh and wav files into features, slices in equal length intervals and divides the data
     into training, validation and test sets. Adding an optional style argument ("MG-R", "MG-V", "MG-H" or "MS-S") 
     will add features for style control.
-    '''     
-    if len(sys.argv)==1:
-        style_path = None
-    elif len(sys.argv)==2:
-        style_path = sys.argv[1]
-    else:
-        print("usage: python prepare_datasets.py [MS-S|MG-R|MG-V|MG-H]")
-        sys.exit(0)
-     
-    # Hardcoded preprocessing params and file structure. 
+    '''
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--style_path",default=None, type=str, help="have to be one of [MS-S|MG-R|MG-V|MG-H]")
+    parser.add_argument("--data_root", default='../data/trinity/source', help="path to .bvh and .wav files")
+    parser.add_argument("--held_out", default='NaturalTalking_007', help="comma separated list of files to use as validation")
+    args = parser.parse_args()
+    data_root = args.data_root
+    style_path = args.style_path
+    held_out = args.held_out.split(',')
+    # Hardcoded preprocessing params and file structure.
     # Modify these if you want the data in some different format
     train_window_secs = 6
     test_window_secs = 20
     window_overlap = 0.5
     fps = 20
 
-    data_root = '../data/trinity/source'
     bvhpath = os.path.join(data_root, 'bvh')
     audiopath = os.path.join(data_root, 'audio')
-    held_out = ['NaturalTalking_007']
-    processed_dir = '../data/trinity/processed'    
+    processed_dir = os.path.join(os.path.dirname(data_root), 'processed')
     
     files = []
     
